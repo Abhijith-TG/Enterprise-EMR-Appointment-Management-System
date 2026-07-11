@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
+import { IJwtPayload } from "../interfaces/jwt.interface.js";
 
 
 
@@ -22,10 +23,10 @@ export const generateRefreshToken = (payload: JwtPayload)=>{
 }
 
 
-export const verifyAccessToken = (token: string) =>{
-    return jwt.verify(token, env.JWT_ACCESS_SECRET);
+export const verifyAccessToken = (token: string): IJwtPayload =>{
+    return jwt.verify(token, env.JWT_ACCESS_SECRET) as IJwtPayload
 }
 
-export const verifyRefreshToken = (token: string)=>{
-    return jwt.verify(token, env.JWT_REFRESH_SECRET)
+export const verifyRefreshToken = (token: string): IJwtPayload=>{
+    return jwt.verify(token, env.JWT_REFRESH_SECRET) as IJwtPayload
 }
