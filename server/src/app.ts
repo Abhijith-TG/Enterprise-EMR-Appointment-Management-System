@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
 import authRoute from './routes/auth.route.js';
+import doctorRoutes from './routes/doctor.route.js';
+import departmentRoute from './routes/department.route.js';
 
 
 const app = express()
@@ -18,6 +20,9 @@ app.use(morgan("dev"))
 // routes 
 
 app.use('/api/v1/auth', authRoute)
+app.use("/api/v1/doctors", doctorRoutes);
+app.use("/api/v1/departments", departmentRoute);
+
 
 
 app.use(globalErrorHandler)
