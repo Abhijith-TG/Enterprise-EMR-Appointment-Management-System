@@ -140,14 +140,14 @@ export const Schedules: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white m-0">Schedule Management</h1>
-        <p className="text-slate-400 text-sm mt-1">Configure and manage clinical sessions and slot durations</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 m-0">Schedule Management</h1>
+        <p className="text-slate-500 text-sm mt-1">Configure and manage clinical sessions and slot durations</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Doctor Selector Sidebar */}
-        <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl p-6 h-fit space-y-4 shadow-xl">
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-6 h-fit space-y-4 shadow-sm">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
             Select Doctor
           </label>
           <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
@@ -164,11 +164,11 @@ export const Schedules: React.FC = () => {
                     className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-all ${
                       isSelected
                         ? "bg-indigo-600 text-white font-medium shadow-md shadow-indigo-600/10"
-                        : "bg-[#151f32] text-slate-400 hover:text-slate-200 hover:bg-[#1a263e]"
+                        : "bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200"
                     }`}
                   >
                     <div>{docUser?.firstName} {docUser?.lastName}</div>
-                    <div className={`text-xs mt-0.5 ${isSelected ? "text-indigo-200" : "text-indigo-400"}`}>
+                    <div className={`text-xs mt-0.5 ${isSelected ? "text-indigo-200" : "text-indigo-500"}`}>
                       {doc.specialization}
                     </div>
                   </button>
@@ -179,15 +179,15 @@ export const Schedules: React.FC = () => {
         </div>
 
         {/* Schedule Form */}
-        <div className="lg:col-span-2 bg-[#0d1321] border border-[#1e293b] rounded-xl p-6 shadow-xl">
+        <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm">
           {selectedDoctorId ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               {message && (
                 <div
                   className={`p-4 rounded-lg text-sm border ${
                     message.type === "success"
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                      : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                      : "bg-rose-50 border-rose-200 text-rose-700"
                   }`}
                 >
                   {message.text}
@@ -196,7 +196,7 @@ export const Schedules: React.FC = () => {
 
               {/* Working Days */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">
                   Working Days
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -209,8 +209,8 @@ export const Schedules: React.FC = () => {
                         onClick={() => handleDayToggle(day)}
                         className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
                           isSelected
-                            ? "bg-indigo-600/20 border-indigo-500 text-indigo-400"
-                            : "bg-[#151f32] border-[#2e3e56] text-slate-400 hover:border-slate-500"
+                            ? "bg-indigo-50 border-indigo-400 text-indigo-700"
+                            : "bg-white border-slate-300 text-slate-600 hover:border-slate-400"
                         }`}
                       >
                         {day}
@@ -222,13 +222,13 @@ export const Schedules: React.FC = () => {
 
               {/* Slot Duration */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                   Slot Duration (Minutes)
                 </label>
                 <select
                   value={slotDuration}
                   onChange={(e) => setSlotDuration(Number(e.target.value))}
-                  className="w-full max-w-[200px] bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full max-w-[200px] bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                 >
                   <option value={10}>10 Minutes</option>
                   <option value={15}>15 Minutes</option>
@@ -242,13 +242,13 @@ export const Schedules: React.FC = () => {
               {/* Sessions */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Clinical Sessions
                   </label>
                   <button
                     type="button"
                     onClick={handleAddSession}
-                    className="flex items-center gap-1 text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                    className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-500 transition-colors"
                   >
                     <Plus className="h-3.5 w-3.5" /> Add Session
                   </button>
@@ -256,7 +256,7 @@ export const Schedules: React.FC = () => {
 
                 <div className="space-y-3">
                   {sessions.map((session, index) => (
-                    <div key={index} className="flex items-center gap-3 bg-[#151f32]/40 border border-[#2e3e56]/30 p-3 rounded-xl">
+                    <div key={index} className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-xl">
                       <div className="flex-1 grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-[10px] uppercase tracking-wider text-slate-500 mb-1">
@@ -267,7 +267,7 @@ export const Schedules: React.FC = () => {
                             value={session.startTime}
                             onChange={(e) => handleSessionChange(index, "startTime", e.target.value)}
                             required
-                            className="w-full bg-[#151f32] border border-[#2e3e56] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                           />
                         </div>
                         <div>
@@ -279,7 +279,7 @@ export const Schedules: React.FC = () => {
                             value={session.endTime}
                             onChange={(e) => handleSessionChange(index, "endTime", e.target.value)}
                             required
-                            className="w-full bg-[#151f32] border border-[#2e3e56] rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                            className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                           />
                         </div>
                       </div>
@@ -287,7 +287,7 @@ export const Schedules: React.FC = () => {
                         type="button"
                         onClick={() => handleRemoveSession(index)}
                         disabled={sessions.length === 1}
-                        className="mt-5 p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-[#1e293b] disabled:opacity-30 disabled:cursor-not-allowed"
+                        className="mt-5 p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -296,7 +296,7 @@ export const Schedules: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#1e293b] flex justify-end">
+              <div className="pt-4 border-t border-slate-200 flex justify-end">
                 <button
                   type="submit"
                   disabled={saveLoading}
@@ -308,7 +308,7 @@ export const Schedules: React.FC = () => {
               </div>
             </form>
           ) : (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12 text-slate-400">
               Please register doctors first to configure schedules.
             </div>
           )}

@@ -24,6 +24,9 @@ const refreshTokenSchema = new mongoose.Schema<IRefreshToken>(
   }
 );
 
+refreshTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0, name: "ttl_refresh_token_expiry" });
+refreshTokenSchema.index({ user: 1 }, { name: "idx_refresh_token_user" });
+
 export const RefreshToken = mongoose.model<IRefreshToken>(
   "RefreshToken",
   refreshTokenSchema

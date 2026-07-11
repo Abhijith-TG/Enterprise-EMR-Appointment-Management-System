@@ -8,11 +8,13 @@ import { DoctorsList } from "./pages/admin/DoctorsList.js";
 import { ReceptionistsList } from "./pages/admin/ReceptionistsList.js";
 import { Schedules } from "./pages/admin/Schedules.js";
 import { AllAppointments } from "./pages/admin/AllAppointments.js";
+import { AuditLogs } from "./pages/admin/AuditLogs.js";
 import { Patients } from "./pages/receptionist/Patients.js";
 import { Scheduler } from "./pages/receptionist/Scheduler.js";
 import { Appointments } from "./pages/receptionist/Appointments.js";
 import { DoctorAppointments } from "./pages/doctor/DoctorAppointments.js";
 import { Loader } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 
 // Route Guard for Authenticated Users
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -64,6 +66,7 @@ const HomeRedirect: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
+      <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
           {/* Public Route */}
@@ -111,6 +114,14 @@ function App() {
               element={
                 <RoleRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
                   <AllAppointments />
+                </RoleRoute>
+              }
+            />
+            <Route
+              path="admin/auditlogs"
+              element={
+                <RoleRoute allowedRoles={[UserRole.SUPER_ADMIN]}>
+                  <AuditLogs />
                 </RoleRoute>
               }
             />

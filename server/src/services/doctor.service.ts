@@ -47,7 +47,12 @@ export const doctorService = {
                 consultationFee: data.consultationFee,
             });
 
-            return doctor;
+            return await Doctor.findById(doctor._id)
+                .populate({
+                    path: "user",
+                    select: "-password -__v"
+                })
+                .populate("department");
 
         } catch (error) {
 

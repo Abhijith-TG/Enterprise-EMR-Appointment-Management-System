@@ -28,7 +28,11 @@ export const createAppointment = asyncHandler(async (req, res) => {
 
     const body = createAppointmentSchema.parse(req.body);
 
-    const appointment = await appointmentService.createAppointment(body);
+    const appointment = await appointmentService.createAppointment(
+        body,
+        req.user!.id,
+        req.user!.role
+    );
 
     sendResponse(res, {
         statusCode: 201,
@@ -43,7 +47,7 @@ export const listAppointments = asyncHandler(async (req, res) => {
 
     const query = listAppointmentsSchema.parse(req.query);
 
-    const result = await appointmentService.listAppointments(query);
+    const result = await appointmentService.listAppointments(query, req.user);
 
     sendResponse(res, {
         statusCode: 200,
@@ -93,3 +97,37 @@ export const updateAppointment = asyncHandler(async (req, res) => {
     });
 
 });
+
+
+export const deleteAppointment = asyncHandler(async (req, res) => {
+
+    const result = await appointmentService.deleteAppointment(
+        req.params.id as string,
+        req.user!.id,
+        req.user!.role
+    );
+
+    sendResponse(res, {
+        statusCode: 200,
+        message: result.message,
+        data: null,
+    });
+
+});
+
+
+export const markArrived = asyncHandler(async (req, res) => {
+
+    const appointment = await appointmentService.markArrived(
+        req.params.id as string,
+        req.user!.id,
+        req.user!.role
+    );
+
+    sendResponse(res, {
+        statusCode: 200,
+        message: "Patient marked as arrived",
+        data: appointment,
+    });
+
+});

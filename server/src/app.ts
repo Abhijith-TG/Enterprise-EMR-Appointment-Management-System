@@ -10,6 +10,8 @@ import departmentRoute from './routes/department.route.js';
 import scheduleRoutes from "./routes/schedule.route.js";
 import appointmentRoutes from "./routes/appointment.route.js";
 import receptionistRoutes from "./routes/receptionist.route.js";
+import patientRoutes from "./routes/patient.route.js";
+import auditlogRoutes from "./routes/auditlog.route.js";
 
 
 
@@ -32,6 +34,8 @@ app.use("/api/v1/departments", departmentRoute);
 app.use("/api/v1/schedules", scheduleRoutes);
 app.use("/api/v1/appointments", appointmentRoutes);
 app.use("/api/v1/receptionists", receptionistRoutes);
+app.use("/api/v1/patients", patientRoutes);
+app.use("/api/v1/auditlogs", auditlogRoutes);
 
 
 

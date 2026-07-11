@@ -1,17 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { doctorService } from "../../services/doctor.service.js";
 import { appointmentService } from "../../services/appointment.service.js";
+import { departmentService } from "../../services/department.service.js";
 import { patientService } from "../../services/patient.service.js";
-import { type Doctor, type Patient } from "../../types/index.js";
+import { type Doctor, type Patient, type Department } from "../../types/index.js";
 import { Loader, Calendar, User, BookOpen, AlertCircle, CheckCircle, Search, Plus } from "lucide-react";
 
 export const Scheduler: React.FC = () => {
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState("");
+
+  const [slotsError, setSlotsError] = useState<string | null>(null);
 
   // Patient Search & Selection
   const [patientSearch, setPatientSearch] = useState("");
@@ -39,6 +44,7 @@ export const Scheduler: React.FC = () => {
   const [qLoading, setQLoading] = useState(false);
 
   useEffect(() => {
+    fetchDepartments();
     fetchDoctors();
     const today = new Date().toISOString().split("T")[0];
     setSelectedDate(today);
@@ -49,6 +55,7 @@ export const Scheduler: React.FC = () => {
       fetchSlots(selectedDoctorId, selectedDate);
     } else {
       setAvailableSlots([]);
+      setSlotsError(null);
     }
     setSelectedSlot("");
   }, [selectedDoctorId, selectedDate]);
@@ -65,6 +72,15 @@ export const Scheduler: React.FC = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [patientSearch]);
 
+  const fetchDepartments = async () => {
+    try {
+      const data = await departmentService.getDepartments();
+      setDepartments(data);
+    } catch (err) {
+      console.error("Error fetching departments", err);
+    }
+  };
+
   const fetchDoctors = async () => {
     try {
       const data = await doctorService.getDoctors();
@@ -77,14 +93,35 @@ export const Scheduler: React.FC = () => {
     }
   };
 
+  const filteredDoctors = selectedDepartmentId
+    ? doctors.filter((d) => {
+        const depId = typeof d.department === "string" ? d.department : d.department?._id;
+        return depId === selectedDepartmentId;
+      })
+    : doctors;
+
+  // Auto-select first doctor when department changes if current is invalid
+  useEffect(() => {
+    if (filteredDoctors.length > 0) {
+      const isValid = filteredDoctors.some((d) => d._id === selectedDoctorId);
+      if (!isValid) setSelectedDoctorId(filteredDoctors[0]._id);
+    } else {
+      setSelectedDoctorId("");
+    }
+  }, [selectedDepartmentId, doctors]);
+
   const fetchSlots = async (doctorId: string, date: string) => {
     setSlotsLoading(true);
+    setSlotsError(null);
     try {
       const slots = await appointmentService.getAvailableSlots(doctorId, date);
       setAvailableSlots(slots);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching slots", err);
       setAvailableSlots([]);
+      setSlotsError(
+        err.response?.data?.message || err.message || "Failed to fetch slots"
+      );
     } finally {
       setSlotsLoading(false);
     }
@@ -169,25 +206,43 @@ export const Scheduler: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-white m-0">Appointment Scheduler</h1>
-        <p className="text-slate-400 text-sm mt-1">Check slots and schedule consultations for EMR folders</p>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 m-0">Appointment Scheduler</h1>
+        <p className="text-slate-500 text-sm mt-1">Check slots and schedule consultations for EMR folders</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         {/* Left Options panel */}
         <div className="xl:col-span-2 space-y-6">
           {/* Doctor & Date Pickers */}
-          <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl p-6 shadow-xl grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                Department Filter
+              </label>
+              <select
+                value={selectedDepartmentId}
+                onChange={(e) => setSelectedDepartmentId(e.target.value)}
+                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+              >
+                <option value="">All Departments</option>
+                {departments.map((dep) => (
+                  <option key={dep._id} value={dep._id}>
+                    {dep.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Consulting Physician
               </label>
               <select
                 value={selectedDoctorId}
                 onChange={(e) => setSelectedDoctorId(e.target.value)}
-                className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
               >
-                {doctors.map((d) => {
+                {filteredDoctors.map((d) => {
                   const u = d.user && typeof d.user !== "string" ? d.user : null;
                   return (
                     <option key={d._id} value={d._id}>
@@ -199,7 +254,7 @@ export const Scheduler: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Preferred Date
               </label>
               <input
@@ -207,14 +262,14 @@ export const Scheduler: React.FC = () => {
                 value={selectedDate}
                 min={todayStr}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
               />
             </div>
           </div>
 
           {/* Slots Panel */}
-          <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl p-6 shadow-xl">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-4 flex items-center gap-2">
+          <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-xl">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600 mb-4 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-indigo-400" />
               Available Time Slots
             </h3>
@@ -222,6 +277,11 @@ export const Scheduler: React.FC = () => {
             {slotsLoading ? (
               <div className="py-12 flex items-center justify-center">
                 <Loader className="h-6 w-6 text-indigo-500 animate-spin" />
+              </div>
+            ) : slotsError ? (
+              <div className="py-12 text-center text-amber-500/80 text-sm flex flex-col items-center justify-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500 mx-auto" />
+                <span>{slotsError}. Please configure the doctor's schedule in the <strong>Schedules</strong> tab first.</span>
               </div>
             ) : availableSlots.length === 0 ? (
               <div className="py-12 text-center text-slate-500 text-sm">
@@ -238,7 +298,7 @@ export const Scheduler: React.FC = () => {
                       onClick={() => setSelectedSlot(slot)}
                       className={`py-2 px-1 rounded-lg text-xs font-semibold border transition-all text-center ${isSelected
                           ? "bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/20"
-                          : "bg-[#151f32] border-[#2e3e56]/80 text-slate-300 hover:border-slate-400 hover:text-white"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
                         }`}
                     >
                       {slot}
@@ -251,8 +311,8 @@ export const Scheduler: React.FC = () => {
         </div>
 
         {/* Right side booking details */}
-        <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl p-6 shadow-xl h-fit">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300 mb-6 flex items-center gap-2">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-6 shadow-sm h-fit">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600 mb-6 flex items-center gap-2">
             <BookOpen className="h-4 w-4 text-indigo-400" />
             Booking Parameters
           </h3>
@@ -260,8 +320,8 @@ export const Scheduler: React.FC = () => {
           {message && (
             <div
               className={`p-3.5 mb-6 rounded-lg text-sm border flex items-start gap-2.5 ${message.type === "success"
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
-                  : "bg-rose-500/10 border-rose-500/30 text-rose-400"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-rose-50 border-rose-200 text-rose-700"
                 }`}
             >
               {message.type === "success" ? (
@@ -276,14 +336,14 @@ export const Scheduler: React.FC = () => {
           <form onSubmit={handleBook} className="space-y-5">
             {/* Patient Search panel */}
             <div className="relative">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Patient Search
               </label>
 
               {selectedPatient ? (
-                <div className="flex items-center justify-between bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-3 text-sm">
+                <div className="flex items-center justify-between bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm">
                   <div>
-                    <div className="font-semibold text-white">
+                    <div className="font-semibold text-slate-900">
                       {selectedPatient.firstName} {selectedPatient.lastName}
                     </div>
                     <div className="text-xs text-slate-400 mt-0.5">ID: {selectedPatient.patientId} • {selectedPatient.mobile}</div>
@@ -298,14 +358,14 @@ export const Scheduler: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-[#151f32] border border-[#2e3e56] rounded-xl">
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-white border border-slate-300 rounded-xl">
                     <Search className="h-4 w-4 text-slate-500" />
                     <input
                       type="text"
                       placeholder="Type name, ID or mobile..."
                       value={patientSearch}
                       onChange={(e) => setPatientSearch(e.target.value)}
-                      className="bg-transparent border-none text-sm text-white w-full focus:outline-none placeholder-slate-500"
+                      className="bg-transparent border-none text-sm text-slate-900 w-full focus:outline-none placeholder-slate-400"
                     />
                   </div>
 
@@ -316,7 +376,7 @@ export const Scheduler: React.FC = () => {
                   )}
 
                   {patientResults.length > 0 && (
-                    <div className="absolute z-10 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-[#151f32] border border-[#2e3e56] rounded-xl shadow-2xl divide-y divide-[#2e3e56]/40">
+                    <div className="absolute z-10 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-300 rounded-xl shadow-2xl divide-y divide-[#2e3e56]/40">
                       {patientResults.map((pat) => (
                         <button
                           key={pat._id}
@@ -326,9 +386,9 @@ export const Scheduler: React.FC = () => {
                             setPatientSearch("");
                             setPatientResults([]);
                           }}
-                          className="w-full text-left px-4 py-2.5 hover:bg-[#1a263e] transition text-sm"
+                          className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition text-sm"
                         >
-                          <div className="font-semibold text-white">
+                          <div className="font-semibold text-slate-900">
                             {pat.firstName} {pat.lastName}
                           </div>
                           <div className="text-xs text-slate-400 mt-0.5">ID: {pat.patientId} • {pat.mobile}</div>
@@ -338,8 +398,8 @@ export const Scheduler: React.FC = () => {
                   )}
 
                   {!searchingPatients && patientSearch.trim() && patientResults.length === 0 && (
-                    <div className="absolute z-10 left-0 right-0 mt-1 bg-[#151f32] border border-[#2e3e56] rounded-xl p-3 text-center shadow-xl">
-                      <p className="text-xs text-slate-400 mb-2">No folders match search terms</p>
+                    <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-300 rounded-xl p-3 text-center shadow-xl">
+                      <p className="text-xs text-slate-500 mb-2">No folders match search terms</p>
                       <button
                         type="button"
                         onClick={() => {
@@ -358,10 +418,10 @@ export const Scheduler: React.FC = () => {
 
             {/* Selected Slot Indicator */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Selected Slot
               </label>
-              <div className="bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-3 text-sm flex items-center gap-2 text-slate-300">
+              <div className="bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm flex items-center gap-2 text-slate-700">
                 <User className="h-4 w-4 text-indigo-400" />
                 {selectedSlot ? (
                   <span className="font-semibold text-indigo-400">{selectedSlot}</span>
@@ -373,7 +433,7 @@ export const Scheduler: React.FC = () => {
 
             {/* Purpose */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Purpose of Visit
               </label>
               <input
@@ -381,13 +441,13 @@ export const Scheduler: React.FC = () => {
                 placeholder="e.g. Annual Checkup, Follow-up"
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
-                className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
               />
             </div>
 
             {/* Notes */}
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
                 Special Instructions
               </label>
               <textarea
@@ -395,7 +455,7 @@ export const Scheduler: React.FC = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 resize-none"
               />
             </div>
 
@@ -412,11 +472,11 @@ export const Scheduler: React.FC = () => {
 
       {/* Quick Register Modal */}
       {quickPatientModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#0d1321] border border-[#1e293b] rounded-2xl shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white border border-slate-200/80 rounded-2xl shadow-2xl overflow-hidden">
             <div className="px-6 py-4 border-b border-[#1e293b] flex items-center justify-between">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Quick Register Patient</h3>
-              <button onClick={() => setQuickPatientModal(false)} className="text-slate-400 hover:text-slate-200">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Quick Register Patient</h3>
+              <button onClick={() => setQuickPatientModal(false)} className="text-slate-400 hover:text-slate-700">
                 ✕
               </button>
             </div>
@@ -436,7 +496,7 @@ export const Scheduler: React.FC = () => {
                     required
                     value={qFirstName}
                     onChange={(e) => setQFirstName(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -445,7 +505,7 @@ export const Scheduler: React.FC = () => {
                     type="text"
                     value={qLastName}
                     onChange={(e) => setQLastName(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                   />
                 </div>
               </div>
@@ -457,7 +517,7 @@ export const Scheduler: React.FC = () => {
                     value={qGender}
                     onChange={(e) => setQGender(e.target.value as any)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -471,7 +531,7 @@ export const Scheduler: React.FC = () => {
                     required
                     value={qDob}
                     onChange={(e) => setQDob(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                   />
                 </div>
               </div>
@@ -483,7 +543,7 @@ export const Scheduler: React.FC = () => {
                   required
                   value={qMobile}
                   onChange={(e) => setQMobile(e.target.value)}
-                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                 />
               </div>
 
@@ -493,15 +553,15 @@ export const Scheduler: React.FC = () => {
                   type="email"
                   value={qEmail}
                   onChange={(e) => setQEmail(e.target.value)}
-                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-1.5 text-sm text-white focus:outline-none"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-sm text-slate-900 focus:outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-[#1e293b] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setQuickPatientModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-700"
                 >
                   Cancel
                 </button>
@@ -520,3 +580,4 @@ export const Scheduler: React.FC = () => {
     </div>
   );
 };
+

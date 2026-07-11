@@ -1,6 +1,7 @@
 import { IUser } from "../interfaces/user.interface.js";
 import { RefreshToken } from "../models/refreshToken.model.js";
 import { User } from "../models/user.model.js";
+import { AuditLog } from "../models/auditlog.model.js";
 import { authRepository } from "../repositories/auth.repository.js"
 import { ApiError } from "../utils/apiError.js";
 import { comparePassword } from "../utils/bcrypt.js";
@@ -55,6 +56,15 @@ export const authService = {
             expiresAt: new Date(
                 Date.now() + 7 * 24 * 60 * 60 * 1000
             ),
+        });
+
+        // Audit Log for login
+        await AuditLog.create({
+            user: user._id,
+            role: user.role,
+            action: "LOGIN",
+            entity: "User",
+            entityId: user._id,
         });
 
 

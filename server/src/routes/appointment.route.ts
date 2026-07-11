@@ -5,6 +5,8 @@ import {
     listAppointments,
     updateAppointmentStatus,
     updateAppointment,
+    deleteAppointment,
+    markArrived,
 } from "../controllers/appointment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
@@ -23,7 +25,8 @@ router.get(
     authMiddleware,
     roleMiddleware(
         UserRole.SUPER_ADMIN,
-        UserRole.RECEPTIONIST
+        UserRole.RECEPTIONIST,
+        UserRole.DOCTOR
     ),
     listAppointments
 );
@@ -54,9 +57,30 @@ router.patch(
     authMiddleware,
     roleMiddleware(
         UserRole.SUPER_ADMIN,
-        UserRole.RECEPTIONIST
+        UserRole.RECEPTIONIST,
+        UserRole.DOCTOR
     ),
     updateAppointmentStatus
+);
+
+router.delete(
+    "/:id",
+    authMiddleware,
+    roleMiddleware(
+        UserRole.SUPER_ADMIN,
+        UserRole.RECEPTIONIST
+    ),
+    deleteAppointment
+);
+
+router.post(
+    "/:id/arrive",
+    authMiddleware,
+    roleMiddleware(
+        UserRole.SUPER_ADMIN,
+        UserRole.RECEPTIONIST
+    ),
+    markArrived
 );
 
 export default router;

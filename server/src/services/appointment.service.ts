@@ -98,7 +98,7 @@ export const appointmentService = {
         return availableSlots;
     },
 
-    createAppointment: async (data: any) => {
+    createAppointment: async (data: any, userId: string, userRole: UserRole) => {
 
         const patient = await Patient.findById(data.patientId);
 
@@ -121,6 +121,13 @@ export const appointmentService = {
         }
 
         const selectedDate = new Date(data.appointmentDate);
+
+        // Prevent past-date bookings at backend level
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) {
+            throw new ApiError(400, "Cannot book an appointment in the past");
+        }
 
         const dayName = selectedDate.toLocaleDateString("en-US", {
             weekday: "long"
@@ -199,6 +206,14 @@ export const appointmentService = {
 
         });
 
+        await AuditLog.create({
+            user: userId,
+            role: userRole,
+            action: "CREATE_APPOINTMENT",
+            entity: "Appointment",
+            entityId: appointment._id,
+        });
+
         return await Appointment.findById(appointment._id)
             .populate({
                 path: "patient"
@@ -214,14 +229,17 @@ export const appointmentService = {
 
     },
 
-    listAppointments: async (query: {
-        page: number;
-        limit: number;
-        status?: string;
-        doctorId?: string;
-        patientId?: string;
-        date?: string;
-    }) => {
+    listAppointments: async (
+        query: {
+            page: number;
+            limit: number;
+            status?: string;
+            doctorId?: string;
+            patientId?: string;
+            date?: string;
+        },
+        currentUser?: { id: string; role: string }
+    ) => {
 
         const filter: Record<string, any> = {};
 
@@ -229,7 +247,13 @@ export const appointmentService = {
             filter.status = query.status;
         }
 
-        if (query.doctorId) {
+        if (currentUser && currentUser.role === UserRole.DOCTOR) {
+            const doctor = await Doctor.findOne({ user: currentUser.id });
+            if (!doctor) {
+                throw new ApiError(403, "Doctor profile not found");
+            }
+            filter.doctor = doctor._id;
+        } else if (query.doctorId) {
             filter.doctor = query.doctorId;
         }
 
@@ -378,6 +402,82 @@ export const appointmentService = {
                     path: "user",
                     select: "-password",
                 },
+            })
+            .populate("department");
+
+    },
+
+    deleteAppointment: async (
+        id: string,
+        userId: string,
+        userRole: UserRole
+    ) => {
+
+        const appointment = await Appointment.findById(id);
+
+        if (!appointment) {
+            throw new ApiError(404, "Appointment not found");
+        }
+
+        const cancellable = [AppointmentStatus.SCHEDULED, AppointmentStatus.ARRIVED];
+
+        if (!cancellable.includes(appointment.status as AppointmentStatus)) {
+            throw new ApiError(
+                400,
+                `Cannot cancel an appointment with status "${appointment.status}"`
+            );
+        }
+
+        appointment.status = AppointmentStatus.CANCELLED;
+        await appointment.save();
+
+        await AuditLog.create({
+            user: userId,
+            role: userRole,
+            action: "CANCEL_APPOINTMENT",
+            entity: "Appointment",
+            entityId: appointment._id,
+        });
+
+        return { message: "Appointment cancelled successfully" };
+
+    },
+
+    markArrived: async (
+        id: string,
+        userId: string,
+        userRole: UserRole
+    ) => {
+
+        const appointment = await Appointment.findById(id);
+
+        if (!appointment) {
+            throw new ApiError(404, "Appointment not found");
+        }
+
+        if (appointment.status !== AppointmentStatus.SCHEDULED) {
+            throw new ApiError(
+                400,
+                `Cannot mark as arrived. Current status is "${appointment.status}"`
+            );
+        }
+
+        appointment.status = AppointmentStatus.ARRIVED;
+        await appointment.save();
+
+        await AuditLog.create({
+            user: userId,
+            role: userRole,
+            action: "MARK_ARRIVED",
+            entity: "Appointment",
+            entityId: appointment._id,
+        });
+
+        return await Appointment.findById(id)
+            .populate({ path: "patient" })
+            .populate({
+                path: "doctor",
+                populate: { path: "user", select: "-password" },
             })
             .populate("department");
 

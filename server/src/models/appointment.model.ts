@@ -53,4 +53,16 @@ const appointmentSchema = new mongoose.Schema<IAppointment>(
   }
 );
 
+appointmentSchema.index(
+  { doctor: 1, appointmentDate: 1, slotTime: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { status: { $ne: "Cancelled" } },
+    name: "unique_doctor_date_slot_active",
+  }
+);
+
+appointmentSchema.index({ status: 1 }, { name: "idx_appointment_status" });
+appointmentSchema.index({ patient: 1 }, { name: "idx_appointment_patient" });
+
 export const Appointment = mongoose.model('Appointment',appointmentSchema)

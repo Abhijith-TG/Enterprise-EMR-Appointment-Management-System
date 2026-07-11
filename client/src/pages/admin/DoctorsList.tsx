@@ -137,35 +137,35 @@ export const DoctorsList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white m-0">Doctors Directory</h1>
-          <p className="text-slate-400 text-sm mt-1">Manage clinical staff, specialties and details</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 m-0">Doctors Directory</h1>
+          <p className="text-slate-500 text-sm mt-1">Manage clinical staff, specialties and details</p>
         </div>
         <button
           onClick={handleOpenCreate}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 transition-all duration-200 shadow-sm"
         >
           <Plus className="h-4 w-4" /> Add Doctor
         </button>
       </div>
 
       {/* Grid List */}
-      <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden shadow-sm">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-[#1e293b] bg-[#141d30]/60">
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Email</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Department</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Specialization</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Consultation Fee</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Status</th>
-              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400 text-right">Actions</th>
+            <tr className="border-b border-slate-200 bg-slate-50">
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Name</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Email</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Department</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Specialization</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Consultation Fee</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500">Status</th>
+              <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#1e293b]">
+          <tbody className="divide-y divide-slate-200/60">
             {doctors.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-8 text-center text-slate-500 text-sm">
+                <td colSpan={7} className="px-6 py-8 text-center text-slate-400 text-sm">
                   No doctors registered yet.
                 </td>
               </tr>
@@ -175,20 +175,20 @@ export const DoctorsList: React.FC = () => {
                 const docDept = doc.department && typeof doc.department !== "string" ? doc.department : null;
 
                 return (
-                  <tr key={doc._id} className="hover:bg-[#121a2b]/40 transition-colors">
-                    <td className="px-6 py-4 text-sm font-medium text-white">
+                  <tr key={doc._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                       {docUser?.firstName} {docUser?.lastName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-400">{docUser?.email}</td>
-                    <td className="px-6 py-4 text-sm text-indigo-400">{docDept?.name || "N/A"}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{doc.specialization}</td>
-                    <td className="px-6 py-4 text-sm text-slate-300">${doc.consultationFee}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{docUser?.email}</td>
+                    <td className="px-6 py-4 text-sm text-indigo-600 font-semibold">{docDept?.name || "N/A"}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{doc.specialization}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">${doc.consultationFee}</td>
                     <td className="px-6 py-4 text-sm">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                           docUser?.isActive
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-rose-500/10 text-rose-400"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-rose-50 text-rose-700"
                         }`}
                       >
                         {docUser?.isActive ? "Active" : "Inactive"}
@@ -197,14 +197,14 @@ export const DoctorsList: React.FC = () => {
                     <td className="px-6 py-4 text-sm text-right space-x-2">
                       <button
                         onClick={() => handleOpenEdit(doc)}
-                        className="inline-flex p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-[#1a2336] transition-all"
+                        className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-all"
                       >
                         <Edit2 className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(doc._id)}
                         disabled={!docUser?.isActive}
-                        className="inline-flex p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-[#1a2336] disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                        className="inline-flex p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -219,15 +219,15 @@ export const DoctorsList: React.FC = () => {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-[#0d1321] border border-[#1e293b] rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#1e293b] flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-950">
                 {editingDoctor ? "Edit Doctor Profile" : "Register New Doctor"}
               </h3>
               <button
                 onClick={() => setModalOpen(false)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
               >
                 ✕
               </button>
@@ -235,88 +235,88 @@ export const DoctorsList: React.FC = () => {
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {formError && (
-                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-lg text-sm">
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-xl text-sm">
                   {formError}
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">First Name</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">First Name</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Last Name</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Email Address</label>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Email Address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                 />
               </div>
 
               {!editingDoctor && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Password</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Password</label>
                   <input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Specialization</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Specialization</label>
                   <input
                     type="text"
                     value={specialization}
                     onChange={(e) => setSpecialization(e.target.value)}
                     required
                     placeholder="e.g. Cardiologist"
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 mb-1">Consultation Fee ($)</label>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Consultation Fee ($)</label>
                   <input
                     type="number"
                     value={consultationFee}
                     onChange={(e) => setConsultationFee(Number(e.target.value))}
                     required
                     min={0}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">Department</label>
+                <label className="block text-xs font-semibold text-slate-500 mb-1">Department</label>
                 <select
                   value={departmentId}
                   onChange={(e) => setDepartmentId(e.target.value)}
-                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                 >
                   {departments.map((dept) => (
                     <option key={dept._id} value={dept._id}>
@@ -326,11 +326,11 @@ export const DoctorsList: React.FC = () => {
                 </select>
               </div>
 
-              <div className="pt-4 border-t border-[#1e293b] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-800"
                 >
                   Cancel
                 </button>

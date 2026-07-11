@@ -58,6 +58,9 @@ const patientSchema = new mongoose.Schema<IPatient>(
   }
 );
 
+patientSchema.index({ mobile: 1 }, { name: "idx_patient_mobile" });
+patientSchema.index({ patientId: 1 }, { unique: true, name: "idx_patient_patientId" });
+
 export const Patient = mongoose.model<IPatient>(
   "Patient",
   patientSchema

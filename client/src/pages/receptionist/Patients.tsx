@@ -104,8 +104,8 @@ export const Patients: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white m-0">Patient Management</h1>
-          <p className="text-slate-400 text-sm mt-1">Register new patients and manage clinical EMR folders</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 m-0">Patient Management</h1>
+          <p className="text-slate-500 text-sm mt-1">Register new patients and manage clinical EMR folders</p>
         </div>
         <button
           onClick={handleOpenCreate}
@@ -116,15 +116,15 @@ export const Patients: React.FC = () => {
       </div>
 
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="flex gap-2 max-w-md bg-[#0d1321] border border-[#1e293b] p-2 rounded-xl shadow-lg">
-        <div className="flex-1 flex items-center gap-2 px-2 bg-[#151f32] rounded-lg border border-[#2e3e56]/40">
-          <Search className="h-4 w-4 text-slate-500" />
+      <form onSubmit={handleSearch} className="flex gap-2 max-w-md bg-white border border-slate-200 p-2 rounded-xl shadow-sm">
+        <div className="flex-1 flex items-center gap-2 px-2 bg-slate-50 rounded-lg border border-slate-200">
+          <Search className="h-4 w-4 text-slate-400" />
           <input
             type="text"
             placeholder="Search by ID, Name or Mobile..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full py-2 bg-transparent text-sm text-white placeholder-slate-500 focus:outline-none"
+            className="w-full py-2 bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
           />
         </div>
         <button
@@ -136,7 +136,7 @@ export const Patients: React.FC = () => {
       </form>
 
       {/* Grid list */}
-      <div className="bg-[#0d1321] border border-[#1e293b] rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-slate-200/80 rounded-xl overflow-hidden shadow-xl">
         {loading ? (
           <div className="h-64 flex items-center justify-center">
             <Loader className="h-8 w-8 text-indigo-500 animate-spin" />
@@ -144,7 +144,7 @@ export const Patients: React.FC = () => {
         ) : (
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#1e293b] bg-[#141d30]/60">
+              <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Patient ID</th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Gender & DOB</th>
@@ -153,7 +153,7 @@ export const Patients: React.FC = () => {
                 <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Address</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#1e293b]">
+            <tbody className="divide-y divide-slate-200/60">
               {patients.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-sm">
@@ -162,12 +162,12 @@ export const Patients: React.FC = () => {
                 </tr>
               ) : (
                 patients.map((pat) => (
-                  <tr key={pat._id} className="hover:bg-[#121a2b]/40 transition-colors">
-                    <td className="px-6 py-4 text-sm font-semibold text-indigo-400">{pat.patientId}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-white">
+                  <tr key={pat._id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold text-indigo-600">{pat.patientId}</td>
+                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                       {pat.firstName} {pat.lastName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">
+                    <td className="px-6 py-4 text-sm text-slate-600">
                       <div>{pat.gender}</div>
                       <div className="text-xs text-slate-500 mt-0.5">
                         {new Date(pat.dob).toLocaleDateString("en-US", {
@@ -177,7 +177,7 @@ export const Patients: React.FC = () => {
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-300">{pat.mobile}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">{pat.mobile}</td>
                     <td className="px-6 py-4 text-sm text-slate-400">{pat.email || "—"}</td>
                     <td className="px-6 py-4 text-sm text-slate-400 truncate max-w-[150px]" title={pat.address}>
                       {pat.address || "—"}
@@ -192,18 +192,18 @@ export const Patients: React.FC = () => {
 
       {/* Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-lg bg-[#0d1321] border border-[#1e293b] rounded-2xl shadow-2xl overflow-hidden my-8">
-            <div className="px-6 py-4 border-b border-[#1e293b] flex items-center justify-between">
-              <h3 className="text-lg font-bold text-white">Register EMR Patient Folder</h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-lg bg-white border border-slate-200/80 rounded-2xl shadow-2xl overflow-hidden my-8">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900">Register EMR Patient Folder</h3>
+              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               {formError && (
-                <div className="bg-rose-500/10 border border-rose-500/30 text-rose-400 p-3 rounded-lg text-sm">
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 p-3 rounded-lg text-sm">
                   {formError}
                 </div>
               )}
@@ -216,7 +216,7 @@ export const Patients: React.FC = () => {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -225,7 +225,7 @@ export const Patients: React.FC = () => {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -237,7 +237,7 @@ export const Patients: React.FC = () => {
                     value={gender}
                     onChange={(e) => setGender(e.target.value as any)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -251,7 +251,7 @@ export const Patients: React.FC = () => {
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -264,7 +264,7 @@ export const Patients: React.FC = () => {
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -273,7 +273,7 @@ export const Patients: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -284,7 +284,7 @@ export const Patients: React.FC = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   rows={2}
-                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 resize-none"
                 />
               </div>
 
@@ -298,7 +298,7 @@ export const Patients: React.FC = () => {
                       type="text"
                       value={primaryContactName}
                       onChange={(e) => setPrimaryContactName(e.target.value)}
-                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
@@ -308,7 +308,7 @@ export const Patients: React.FC = () => {
                       value={relationship}
                       onChange={(e) => setRelationship(e.target.value)}
                       placeholder="e.g. Spouse"
-                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -318,12 +318,12 @@ export const Patients: React.FC = () => {
                     type="tel"
                     value={primaryContactNumber}
                     onChange={(e) => setPrimaryContactNumber(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[#1e293b] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
@@ -346,3 +346,4 @@ export const Patients: React.FC = () => {
     </div>
   );
 };
+
