@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
+import authRoute from './routes/auth.route.js';
+
 
 const app = express()
 
@@ -15,6 +17,7 @@ app.use(morgan("dev"))
 
 // routes 
 
+app.use('/api/v1/auth', authRoute)
 
 
 app.use(globalErrorHandler)
