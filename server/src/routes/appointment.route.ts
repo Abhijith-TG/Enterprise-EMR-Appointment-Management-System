@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { createAppointment, getAvailableSlots } from "../controllers/appointment.controller.js";
+import {
+    createAppointment,
+    getAvailableSlots,
+    listAppointments,
+    updateAppointmentStatus,
+    updateAppointment,
+} from "../controllers/appointment.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { roleMiddleware } from "../middlewares/role.middleware.js";
 import { UserRole } from "../constants/roles.js";
@@ -12,6 +18,16 @@ router.get(
     getAvailableSlots
 );
 
+router.get(
+    "/",
+    authMiddleware,
+    roleMiddleware(
+        UserRole.SUPER_ADMIN,
+        UserRole.RECEPTIONIST
+    ),
+    listAppointments
+);
+
 router.post(
     "/",
     authMiddleware,
@@ -20,6 +36,27 @@ router.post(
         UserRole.RECEPTIONIST
     ),
     createAppointment
+);
+
+router.put(
+    "/:id",
+    authMiddleware,
+    roleMiddleware(
+        UserRole.SUPER_ADMIN,
+        UserRole.RECEPTIONIST,
+        UserRole.DOCTOR
+    ),
+    updateAppointment
+);
+
+router.patch(
+    "/:id/status",
+    authMiddleware,
+    roleMiddleware(
+        UserRole.SUPER_ADMIN,
+        UserRole.RECEPTIONIST
+    ),
+    updateAppointmentStatus
 );
 
 export default router;

@@ -1,9 +1,10 @@
 import { IUser } from "../interfaces/user.interface.js";
 import { RefreshToken } from "../models/refreshToken.model.js";
+import { User } from "../models/user.model.js";
 import { authRepository } from "../repositories/auth.repository.js"
 import { ApiError } from "../utils/apiError.js";
 import { comparePassword } from "../utils/bcrypt.js";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwt.js";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 
 
 
@@ -69,6 +70,36 @@ export const authService = {
         };
 
 
+    },
+
+    refresh: async (token: string) => {
+        try {
+            const payload = verifyRefreshToken(token);
+            const tokenDoc = await RefreshToken.findOne({ token, user: payload.id });
+
+            if (!tokenDoc || tokenDoc.expiresAt < new Date()) {
+                throw new ApiError(401, "Invalid or expired refresh token");
+            }
+
+            const user = await User.findById(payload.id);
+            if (!user || !user.isActive) {
+                throw new ApiError(403, "User account is disabled");
+            }
+
+            const accessToken = generateAccessToken({
+                id: user._id.toString(),
+                role: user.role,
+            });
+
+            return { accessToken };
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError(401, "Invalid refresh token");
+        }
+    },
+
+    logout: async (token: string) => {
+        await RefreshToken.deleteOne({ token });
     }
 
 }

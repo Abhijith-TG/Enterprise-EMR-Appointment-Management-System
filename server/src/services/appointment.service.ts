@@ -5,6 +5,22 @@ import { ApiError } from "../utils/apiError.js";
 import { generateSlots } from "../utils/generateSlots.js";
 import { Patient } from "../models/patient.model.js";
 import { Doctor } from "../models/doctor.model.js";
+import { AuditLog } from "../models/auditlog.model.js";
+import { UserRole } from "../constants/roles.js";
+
+// Valid status transitions map
+const VALID_TRANSITIONS: Record<string, string[]> = {
+    [AppointmentStatus.SCHEDULED]: [
+        AppointmentStatus.ARRIVED,
+        AppointmentStatus.CANCELLED,
+    ],
+    [AppointmentStatus.ARRIVED]: [
+        AppointmentStatus.COMPLETED,
+        AppointmentStatus.CANCELLED,
+    ],
+    [AppointmentStatus.COMPLETED]: [],
+    [AppointmentStatus.CANCELLED]: [],
+};
 
 export const appointmentService = {
 
@@ -196,6 +212,175 @@ export const appointmentService = {
             })
             .populate("department");
 
-    }
+    },
+
+    listAppointments: async (query: {
+        page: number;
+        limit: number;
+        status?: string;
+        doctorId?: string;
+        patientId?: string;
+        date?: string;
+    }) => {
+
+        const filter: Record<string, any> = {};
+
+        if (query.status) {
+            filter.status = query.status;
+        }
+
+        if (query.doctorId) {
+            filter.doctor = query.doctorId;
+        }
+
+        if (query.patientId) {
+            filter.patient = query.patientId;
+        }
+
+        if (query.date) {
+            const selectedDate = new Date(query.date);
+            const startOfDay = new Date(selectedDate);
+            startOfDay.setHours(0, 0, 0, 0);
+
+            const endOfDay = new Date(selectedDate);
+            endOfDay.setHours(23, 59, 59, 999);
+
+            filter.appointmentDate = {
+                $gte: startOfDay,
+                $lte: endOfDay,
+            };
+        }
+
+        const skip = (query.page - 1) * query.limit;
+
+        const [appointments, total] = await Promise.all([
+            Appointment.find(filter)
+                .populate({
+                    path: "patient",
+                })
+                .populate({
+                    path: "doctor",
+                    populate: {
+                        path: "user",
+                        select: "-password",
+                    },
+                })
+                .populate("department")
+                .sort({ appointmentDate: -1, slotTime: -1 })
+                .skip(skip)
+                .limit(query.limit),
+            Appointment.countDocuments(filter),
+        ]);
+
+        return {
+            appointments,
+            meta: {
+                page: query.page,
+                limit: query.limit,
+                total,
+                totalPages: Math.ceil(total / query.limit),
+            },
+        };
+
+    },
+
+    updateAppointmentStatus: async (
+        id: string,
+        status: AppointmentStatus,
+        userId: string,
+        userRole: UserRole
+    ) => {
+
+        const appointment = await Appointment.findById(id);
+
+        if (!appointment) {
+            throw new ApiError(404, "Appointment not found");
+        }
+
+        const currentStatus = appointment.status;
+
+        const allowedTransitions = VALID_TRANSITIONS[currentStatus];
+
+        if (!allowedTransitions || !allowedTransitions.includes(status)) {
+            throw new ApiError(
+                400,
+                `Cannot transition from "${currentStatus}" to "${status}"`
+            );
+        }
+
+        appointment.status = status;
+
+        await appointment.save();
+
+        // Create audit log entry
+        await AuditLog.create({
+            user: userId,
+            role: userRole,
+            action: `STATUS_CHANGE:${currentStatus}->${status}`,
+            entity: "Appointment",
+            entityId: appointment._id,
+        });
+
+        return await Appointment.findById(id)
+            .populate({
+                path: "patient",
+            })
+            .populate({
+                path: "doctor",
+                populate: {
+                    path: "user",
+                    select: "-password",
+                },
+            })
+            .populate("department");
+
+    },
+
+    updateAppointment: async (
+        id: string,
+        data: { purpose?: string; notes?: string },
+        userId: string,
+        userRole: UserRole
+    ) => {
+
+        const appointment = await Appointment.findById(id);
+
+        if (!appointment) {
+            throw new ApiError(404, "Appointment not found");
+        }
+
+        if (data.purpose !== undefined) {
+            appointment.purpose = data.purpose;
+        }
+
+        if (data.notes !== undefined) {
+            appointment.notes = data.notes;
+        }
+
+        await appointment.save();
+
+        // Create audit log entry
+        await AuditLog.create({
+            user: userId,
+            role: userRole,
+            action: "UPDATE_APPOINTMENT",
+            entity: "Appointment",
+            entityId: appointment._id,
+        });
+
+        return await Appointment.findById(id)
+            .populate({
+                path: "patient",
+            })
+            .populate({
+                path: "doctor",
+                populate: {
+                    path: "user",
+                    select: "-password",
+                },
+            })
+            .populate("department");
+
+    },
 
 };
