@@ -30,8 +30,8 @@ export const AllAppointments: React.FC = () => {
 
   const fetchDoctors = async () => {
     try {
-      const data = await doctorService.getDoctors();
-      setDoctors(data);
+      const result = await doctorService.getDoctors();
+      setDoctors(result.data || []);
     } catch (err) {
       console.error("Error fetching doctors", err);
     }

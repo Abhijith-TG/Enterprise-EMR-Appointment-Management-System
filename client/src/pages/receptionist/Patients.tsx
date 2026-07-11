@@ -2,11 +2,16 @@ import React, { useState, useEffect } from "react";
 import { patientService } from "../../services/patient.service.js";
 import { type Patient } from "../../types/index.js";
 import { Plus, Search, Loader } from "lucide-react";
+import { Pagination } from "../../components/Pagination.js";
 
 export const Patients: React.FC = () => {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 10;
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -26,13 +31,17 @@ export const Patients: React.FC = () => {
 
   useEffect(() => {
     fetchPatients();
-  }, []);
+  }, [page]);
 
   const fetchPatients = async () => {
     setLoading(true);
     try {
-      const data = await patientService.getPatients();
-      setPatients(data);
+      const result = await patientService.getPatients(page, LIMIT);
+      setPatients(Array.isArray(result.data) ? result.data : []);
+      if (result.meta) {
+        setTotalPages(result.meta.totalPages ?? 1);
+        setTotalItems(result.meta.total ?? 0);
+      }
     } catch (err) {
       console.error("Error fetching patients", err);
     } finally {
@@ -142,51 +151,60 @@ export const Patients: React.FC = () => {
             <Loader className="h-8 w-8 text-indigo-500 animate-spin" />
           </div>
         ) : (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200 bg-slate-50">
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Patient ID</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Gender & DOB</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Mobile</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Email</th>
-                <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Address</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200/60">
-              {patients.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-sm">
-                    No patient folders found.
-                  </td>
+          <>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Patient ID</th>
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Name</th>
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Gender & DOB</th>
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Mobile</th>
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Email</th>
+                  <th className="px-6 py-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Address</th>
                 </tr>
-              ) : (
-                patients.map((pat) => (
-                  <tr key={pat._id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-semibold text-indigo-600">{pat.patientId}</td>
-                    <td className="px-6 py-4 text-sm font-semibold text-slate-900">
-                      {pat.firstName} {pat.lastName}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      <div>{pat.gender}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">
-                        {new Date(pat.dob).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{pat.mobile}</td>
-                    <td className="px-6 py-4 text-sm text-slate-400">{pat.email || "—"}</td>
-                    <td className="px-6 py-4 text-sm text-slate-400 truncate max-w-[150px]" title={pat.address}>
-                      {pat.address || "—"}
+              </thead>
+              <tbody className="divide-y divide-slate-200/60">
+                {patients.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500 text-sm">
+                      No patient folders found.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  patients.map((pat) => (
+                    <tr key={pat._id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 text-sm font-semibold text-indigo-600">{pat.patientId}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-900">
+                        {pat.firstName} {pat.lastName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        <div>{pat.gender}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {new Date(pat.dob).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">{pat.mobile}</td>
+                      <td className="px-6 py-4 text-sm text-slate-400">{pat.email || "—"}</td>
+                      <td className="px-6 py-4 text-sm text-slate-400 truncate max-w-[150px]" title={pat.address}>
+                        {pat.address || "—"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              onPageChange={setPage}
+              itemLabel="patients"
+            />
+          </>
         )}
       </div>
 
@@ -216,7 +234,7 @@ export const Patients: React.FC = () => {
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -225,7 +243,7 @@ export const Patients: React.FC = () => {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -237,7 +255,7 @@ export const Patients: React.FC = () => {
                     value={gender}
                     onChange={(e) => setGender(e.target.value as any)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -251,7 +269,7 @@ export const Patients: React.FC = () => {
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -264,7 +282,7 @@ export const Patients: React.FC = () => {
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
                     required
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div>
@@ -273,7 +291,7 @@ export const Patients: React.FC = () => {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -298,7 +316,7 @@ export const Patients: React.FC = () => {
                       type="text"
                       value={primaryContactName}
                       onChange={(e) => setPrimaryContactName(e.target.value)}
-                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                   <div>
@@ -308,7 +326,7 @@ export const Patients: React.FC = () => {
                       value={relationship}
                       onChange={(e) => setRelationship(e.target.value)}
                       placeholder="e.g. Spouse"
-                      className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                     />
                   </div>
                 </div>
@@ -318,7 +336,7 @@ export const Patients: React.FC = () => {
                     type="tel"
                     value={primaryContactNumber}
                     onChange={(e) => setPrimaryContactNumber(e.target.value)}
-                    className="w-full bg-[#151f32] border border-[#2e3e56] rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>

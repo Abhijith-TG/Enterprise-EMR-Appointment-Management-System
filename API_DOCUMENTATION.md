@@ -111,3 +111,27 @@ All API endpoints are prefixed with `/api/v1`.
 - **Path**: `/auditlogs`
 - **Description**: Retrieves system audit logs.
 - **Permissions**: `SUPER_ADMIN`
+
+---
+
+## Departments (`/departments`)
+
+### 1. List Departments
+- **Method**: `GET`
+- **Path**: `/departments`
+- **Description**: Retrieves all hospital departments sorted alphabetically.
+- **Permissions**: Authenticated user (`SUPER_ADMIN`, `RECEPTIONIST`, `DOCTOR`)
+
+### 2. Create Department
+- **Method**: `POST`
+- **Path**: `/departments`
+- **Description**: Creates a new department.
+- **Body**:
+  ```json
+  {
+    "name": "Cardiology",
+    "description": "Heart and vascular health."
+  }
+  ```
+- **Permissions**: `SUPER_ADMIN`
+

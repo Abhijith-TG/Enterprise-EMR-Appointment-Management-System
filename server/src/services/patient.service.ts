@@ -20,13 +20,19 @@ export const patientService = {
 
     },
 
-    getPatients: async () => {
-
-        return await Patient.find()
-            .sort({
-                createdAt: -1
-            });
-
+    getPatients: async (page?: number, limit?: number) => {
+        if (page && limit) {
+            const skip = (page - 1) * limit;
+            const [patients, total] = await Promise.all([
+                Patient.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+                Patient.countDocuments(),
+            ]);
+            return {
+                patients,
+                meta: { page, limit, total, totalPages: Math.ceil(total / limit) }
+            };
+        }
+        return await Patient.find().sort({ createdAt: -1 });
     },
 
     getPatientById: async (id: string) => {

@@ -83,10 +83,10 @@ export const Scheduler: React.FC = () => {
 
   const fetchDoctors = async () => {
     try {
-      const data = await doctorService.getDoctors();
-      setDoctors(data);
-      if (data.length > 0) {
-        setSelectedDoctorId(data[0]._id);
+      const result = await doctorService.getDoctors();
+      setDoctors(result.data || []);
+      if ((result.data || []).length > 0) {
+        setSelectedDoctorId((result.data || [])[0]._id);
       }
     } catch (err) {
       console.error("Error fetching doctors", err);

@@ -2,10 +2,21 @@ import React, { useState, useEffect } from "react";
 import { receptionistService } from "../../services/receptionist.service.js";
 import type { User } from "../../types/index.js";
 import { Plus, Edit2, Trash2, Loader } from "lucide-react";
+import { Pagination } from "../../components/Pagination.js";
+import { ConfirmModal } from "../../components/ConfirmModal.js";
+import toast from "react-hot-toast";
 
 export const ReceptionistsList: React.FC = () => {
   const [receptionists, setReceptionists] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 10;
+
+  // Delete Confirmation States
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [receptionistIdToDelete, setReceptionistIdToDelete] = useState<string | null>(null);
 
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -22,15 +33,21 @@ export const ReceptionistsList: React.FC = () => {
 
   useEffect(() => {
     fetchReceptionists();
-  }, []);
+  }, [page]);
 
   const fetchReceptionists = async () => {
     setLoading(true);
     try {
-      const data = await receptionistService.getReceptionists();
-      setReceptionists(data);
+      const result = await receptionistService.getReceptionists(page, LIMIT);
+      const list = Array.isArray(result.data) ? result.data : [];
+      setReceptionists(list);
+      if (result.meta) {
+        setTotalPages(result.meta.totalPages ?? 1);
+        setTotalItems(result.meta.total ?? 0);
+      }
     } catch (err) {
       console.error("Error loading receptionists data", err);
+      setReceptionists([]);
     } finally {
       setLoading(false);
     }
@@ -90,13 +107,23 @@ export const ReceptionistsList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to deactivate this receptionist?")) return;
+  const handleDelete = (id: string) => {
+    setReceptionistIdToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!receptionistIdToDelete) return;
     try {
-      await receptionistService.deleteReceptionist(id);
+      await receptionistService.deleteReceptionist(receptionistIdToDelete);
+      toast.success("Receptionist deactivated successfully!");
       await fetchReceptionists();
     } catch (err) {
       console.error("Error deleting receptionist", err);
+      toast.error("Failed to deactivate receptionist.");
+    } finally {
+      setReceptionistIdToDelete(null);
+      setDeleteConfirmOpen(false);
     }
   };
 
@@ -179,6 +206,13 @@ export const ReceptionistsList: React.FC = () => {
             )}
           </tbody>
         </table>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          onPageChange={setPage}
+          itemLabel="receptionists"
+        />
       </div>
 
       {/* Modal */}
@@ -270,6 +304,20 @@ export const ReceptionistsList: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false);
+          setReceptionistIdToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Deactivate Receptionist"
+        message="Are you sure you want to deactivate this receptionist? This will suspend their login credentials and block their platform access."
+        confirmText="Deactivate"
+        cancelText="Cancel"
+        isDanger={true}
+      />
     </div>
   );
 };

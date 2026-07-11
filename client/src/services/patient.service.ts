@@ -6,9 +6,10 @@ export const patientService = {
     return response.data.data;
   },
 
-  getPatients: async () => {
-    const response = await api.get("/patients");
-    return response.data.data;
+  getPatients: async (page?: number, limit?: number) => {
+    const params = page && limit ? { page, limit } : {};
+    const response = await api.get("/patients", { params });
+    return { data: response.data.data, meta: response.data.meta };
   },
 
   getPatientById: async (id: string) => {

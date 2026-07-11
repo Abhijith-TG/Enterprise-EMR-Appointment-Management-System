@@ -42,10 +42,11 @@ export const Schedules: React.FC = () => {
   const fetchDoctors = async () => {
     setLoading(true);
     try {
-      const data = await doctorService.getDoctors();
-      setDoctors(data);
-      if (data.length > 0) {
-        setSelectedDoctorId(data[0]._id);
+      const result = await doctorService.getDoctors();
+      const docs = result.data || [];
+      setDoctors(docs);
+      if (docs.length > 0) {
+        setSelectedDoctorId(docs[0]._id);
       }
     } catch (err) {
       console.error("Error fetching doctors", err);
