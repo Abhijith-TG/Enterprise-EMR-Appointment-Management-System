@@ -7,6 +7,9 @@ import { globalErrorHandler } from './middlewares/globalErrorHandler.js';
 import authRoute from './routes/auth.route.js';
 import doctorRoutes from './routes/doctor.route.js';
 import departmentRoute from './routes/department.route.js';
+import scheduleRoutes from "./routes/schedule.route.js";
+import appointmentRoutes from "./routes/appointment.route.js";
+
 
 
 const app = express()
@@ -22,6 +25,8 @@ app.use(morgan("dev"))
 app.use('/api/v1/auth', authRoute)
 app.use("/api/v1/doctors", doctorRoutes);
 app.use("/api/v1/departments", departmentRoute);
+app.use("/api/v1/schedules", scheduleRoutes);
+app.use("/api/v1/appointments", appointmentRoutes);
 
 
 
