@@ -2,18 +2,16 @@ import express, { NextFunction, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 
 const app = express()
 
 app.use(cors())
 app.use(helmet())
 app.use(cookieParser())
+app.use(morgan("dev"))
 
 
-app.use((req:Request, _res:Response, next:NextFunction)=>{
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-    next();
-})
 
 
 
