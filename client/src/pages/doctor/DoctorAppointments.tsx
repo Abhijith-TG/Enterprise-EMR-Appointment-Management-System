@@ -30,7 +30,8 @@ export const DoctorAppointments: React.FC = () => {
   const resolveDoctorProfile = async () => {
     setLoading(true);
     try {
-      const doctorsList = await doctorService.getDoctors();
+      const result = await doctorService.getDoctors();
+      const doctorsList = result.data || [];
       // Match doctor user.id with current logged in user.id
       const matchedDoc = doctorsList.find((d: any) => {
         const uId = d.user && typeof d.user !== "string" ? d.user._id : d.user;

@@ -21,15 +21,25 @@ export const createPatient = asyncHandler(async (req, res) => {
 });
 
 export const getPatients = asyncHandler(async (req, res) => {
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-    const patients = await patientService.getPatients();
+    const result = await patientService.getPatients(page, limit);
 
-    sendResponse(res, {
-        statusCode: 200,
-        message: "Patients fetched successfully",
-        data: patients
-    });
-
+    if (page && limit && typeof result === "object" && "patients" in result) {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Patients fetched successfully",
+            data: result.patients,
+            meta: result.meta
+        });
+    } else {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Patients fetched successfully",
+            data: result
+        });
+    }
 });
 
 export const getPatientById = asyncHandler(async (req, res) => {

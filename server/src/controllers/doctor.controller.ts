@@ -19,14 +19,25 @@ export const createDoctor = asyncHandler(async (req, res) => {
 
 
 export const getDoctors = asyncHandler(async (req, res) => {
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-    const doctors = await doctorService.getDoctors();
+    const result = await doctorService.getDoctors(page, limit);
 
-    sendResponse(res, {
-        statusCode: 200,
-        message: "Doctors fetched successfully",
-        data: doctors
-    });
+    if (page && limit && typeof result === "object" && "doctors" in result) {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Doctors fetched successfully",
+            data: result.doctors,
+            meta: result.meta
+        });
+    } else {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Doctors fetched successfully",
+            data: result
+        });
+    }
 
 });
 

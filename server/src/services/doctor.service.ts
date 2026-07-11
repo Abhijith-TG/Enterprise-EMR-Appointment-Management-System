@@ -67,7 +67,32 @@ export const doctorService = {
     },
 
 
-    getDoctors: async () => {
+    getDoctors: async (page?: number, limit?: number) => {
+        if (page && limit) {
+            const skip = (page - 1) * limit;
+            const [doctors, total] = await Promise.all([
+                Doctor.find()
+                    .populate({
+                        path: "user",
+                        select: "-password -__v"
+                    })
+                    .populate("department")
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit),
+                Doctor.countDocuments()
+            ]);
+
+            return {
+                doctors,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            };
+        }
 
         return await Doctor.find()
             .populate({

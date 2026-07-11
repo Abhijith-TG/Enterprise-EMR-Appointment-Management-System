@@ -13,3 +13,15 @@ export const getDepartments = asyncHandler(async (req, res) => {
     });
 
 });
+
+export const createDepartment = asyncHandler(async (req, res) => {
+
+    const department = await departmentService.createDepartment(req.body);
+
+    sendResponse(res, {
+        statusCode: 201,
+        message: "Department created successfully",
+        data: department
+    });
+
+});

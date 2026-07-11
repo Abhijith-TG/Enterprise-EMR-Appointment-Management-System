@@ -6,9 +6,10 @@ export const receptionistService = {
     return response.data.data;
   },
 
-  getReceptionists: async () => {
-    const response = await api.get("/receptionists");
-    return response.data.data;
+  getReceptionists: async (page?: number, limit?: number) => {
+    const params = page && limit ? { page, limit } : {};
+    const response = await api.get("/receptionists", { params });
+    return { data: response.data.data, meta: response.data.meta };
   },
 
   getReceptionistById: async (id: string) => {

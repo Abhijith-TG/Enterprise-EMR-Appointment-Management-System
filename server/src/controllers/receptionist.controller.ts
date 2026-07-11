@@ -21,15 +21,25 @@ export const createReceptionist = asyncHandler(async (req, res) => {
 });
 
 export const getReceptionists = asyncHandler(async (req, res) => {
+    const page = req.query.page ? Number(req.query.page) : undefined;
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
 
-    const receptionists = await receptionistService.getReceptionists();
+    const result = await receptionistService.getReceptionists(page, limit);
 
-    sendResponse(res, {
-        statusCode: 200,
-        message: "Receptionists fetched successfully",
-        data: receptionists,
-    });
-
+    if (page && limit && typeof result === "object" && "receptionists" in result) {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Receptionists fetched successfully",
+            data: result.receptionists,
+            meta: result.meta,
+        });
+    } else {
+        sendResponse(res, {
+            statusCode: 200,
+            message: "Receptionists fetched successfully",
+            data: result,
+        });
+    }
 });
 
 export const getReceptionistById = asyncHandler(async (req, res) => {

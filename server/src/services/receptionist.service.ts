@@ -36,7 +36,29 @@ export const receptionistService = {
 
     },
 
-    getReceptionists: async () => {
+    getReceptionists: async (page?: number, limit?: number) => {
+        if (page && limit) {
+            const skip = (page - 1) * limit;
+            const filter = { role: UserRole.RECEPTIONIST };
+            const [receptionists, total] = await Promise.all([
+                User.find(filter)
+                    .select("-password")
+                    .sort({ createdAt: -1 })
+                    .skip(skip)
+                    .limit(limit),
+                User.countDocuments(filter)
+            ]);
+
+            return {
+                receptionists,
+                meta: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            };
+        }
 
         return await User.find({
             role: UserRole.RECEPTIONIST,

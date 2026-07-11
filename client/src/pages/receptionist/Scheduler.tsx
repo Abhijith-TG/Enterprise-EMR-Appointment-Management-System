@@ -4,7 +4,8 @@ import { appointmentService } from "../../services/appointment.service.js";
 import { departmentService } from "../../services/department.service.js";
 import { patientService } from "../../services/patient.service.js";
 import { type Doctor, type Patient, type Department } from "../../types/index.js";
-import { Loader, Calendar, User, BookOpen, AlertCircle, CheckCircle, Search, Plus } from "lucide-react";
+import { Loader, Calendar, User, BookOpen, AlertCircle, Search, Plus } from "lucide-react";
+import toast from "react-hot-toast";
 
 export const Scheduler: React.FC = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -29,7 +30,6 @@ export const Scheduler: React.FC = () => {
   const [notes, setNotes] = useState("");
 
   // Notifications & Loaders
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
 
   // Quick Patient Modal
@@ -83,10 +83,10 @@ export const Scheduler: React.FC = () => {
 
   const fetchDoctors = async () => {
     try {
-      const data = await doctorService.getDoctors();
-      setDoctors(data);
-      if (data.length > 0) {
-        setSelectedDoctorId(data[0]._id);
+      const result = await doctorService.getDoctors();
+      setDoctors(result.data || []);
+      if ((result.data || []).length > 0) {
+        setSelectedDoctorId((result.data || [])[0]._id);
       }
     } catch (err) {
       console.error("Error fetching doctors", err);
@@ -95,9 +95,9 @@ export const Scheduler: React.FC = () => {
 
   const filteredDoctors = selectedDepartmentId
     ? doctors.filter((d) => {
-        const depId = typeof d.department === "string" ? d.department : d.department?._id;
-        return depId === selectedDepartmentId;
-      })
+      const depId = typeof d.department === "string" ? d.department : d.department?._id;
+      return depId === selectedDepartmentId;
+    })
     : doctors;
 
   // Auto-select first doctor when department changes if current is invalid
@@ -167,11 +167,10 @@ export const Scheduler: React.FC = () => {
   const handleBook = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedPatient || !selectedDoctorId || !selectedDate || !selectedSlot) {
-      setMessage({ type: "error", text: "Please complete all appointment selections." });
+      toast.error("Please complete all appointment selections.");
       return;
     }
 
-    setMessage(null);
     setBookingLoading(true);
 
     try {
@@ -183,7 +182,7 @@ export const Scheduler: React.FC = () => {
         purpose,
         notes,
       });
-      setMessage({ type: "success", text: "Appointment scheduled successfully." });
+      toast.success("Appointment scheduled successfully!");
       // Reset form
       setPurpose("");
       setNotes("");
@@ -192,10 +191,8 @@ export const Scheduler: React.FC = () => {
       // Re-fetch slots
       fetchSlots(selectedDoctorId, selectedDate);
     } catch (err: any) {
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || err.message || "Double-booking or scheduling conflict occurred.",
-      });
+      const errMsg = err.response?.data?.message || err.message || "Double-booking or scheduling conflict occurred.";
+      toast.error(errMsg);
     } finally {
       setBookingLoading(false);
     }
@@ -297,8 +294,8 @@ export const Scheduler: React.FC = () => {
                       type="button"
                       onClick={() => setSelectedSlot(slot)}
                       className={`py-2 px-1 rounded-lg text-xs font-semibold border transition-all text-center ${isSelected
-                          ? "bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/20"
-                          : "bg-slate-50 border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
+                        ? "bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/20"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700"
                         }`}
                     >
                       {slot}
@@ -317,21 +314,7 @@ export const Scheduler: React.FC = () => {
             Booking Parameters
           </h3>
 
-          {message && (
-            <div
-              className={`p-3.5 mb-6 rounded-lg text-sm border flex items-start gap-2.5 ${message.type === "success"
-                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                  : "bg-rose-50 border-rose-200 text-rose-700"
-                }`}
-            >
-              {message.type === "success" ? (
-                <CheckCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              )}
-              <span>{message.text}</span>
-            </div>
-          )}
+
 
           <form onSubmit={handleBook} className="space-y-5">
             {/* Patient Search panel */}
