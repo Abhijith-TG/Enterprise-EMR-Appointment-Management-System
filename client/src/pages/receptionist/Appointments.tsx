@@ -3,6 +3,8 @@ import { appointmentService } from "../../services/appointment.service.js";
 import { doctorService } from "../../services/doctor.service.js";
 import { type Appointment, type Doctor, AppointmentStatus } from "../../types/index.js";
 import { Loader, ChevronLeft, ChevronRight, X, UserCheck, Edit3, ClipboardList } from "lucide-react";
+import { ConfirmModal } from "../../components/ConfirmModal.js";
+import toast from "react-hot-toast";
 
 export const Appointments: React.FC = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -23,6 +25,14 @@ export const Appointments: React.FC = () => {
 
   const [notesModalOpen, setNotesModalOpen] = useState(false);
   const [selectedApptNotes, setSelectedApptNotes] = useState<{ purpose: string; notes: string } | null>(null);
+
+  // Status Confirmation States
+  const [statusConfirmOpen, setStatusConfirmOpen] = useState(false);
+  const [apptIdToUpdate, setApptIdToUpdate] = useState<string | null>(null);
+  const [nextStatus, setNextStatus] = useState<AppointmentStatus | null>(null);
+  const [confirmTitle, setConfirmTitle] = useState("");
+  const [confirmMessage, setConfirmMessage] = useState("");
+  const [confirmIsDanger, setConfirmIsDanger] = useState(false);
 
   useEffect(() => {
     fetchDoctors();
@@ -64,17 +74,39 @@ export const Appointments: React.FC = () => {
     }
   };
 
-  const handleUpdateStatus = async (apptId: string, status: AppointmentStatus) => {
-    setStatusUpdateLoading(apptId);
+  const handleArrivedClick = (apptId: string) => {
+    setApptIdToUpdate(apptId);
+    setNextStatus(AppointmentStatus.ARRIVED);
+    setConfirmTitle("Confirm Patient Arrival");
+    setConfirmMessage("Are you sure you want to mark this patient as arrived? This will check them in and notify the physician.");
+    setConfirmIsDanger(false);
+    setStatusConfirmOpen(true);
+  };
+
+  const handleCancelClick = (apptId: string) => {
+    setApptIdToUpdate(apptId);
+    setNextStatus(AppointmentStatus.CANCELLED);
+    setConfirmTitle("Cancel Appointment");
+    setConfirmMessage("Are you sure you want to cancel this appointment? This action cannot be undone and will release the slot.");
+    setConfirmIsDanger(true);
+    setStatusConfirmOpen(true);
+  };
+
+  const handleConfirmStatusUpdate = async () => {
+    if (!apptIdToUpdate || !nextStatus) return;
+    setStatusUpdateLoading(apptIdToUpdate);
     try {
-      await appointmentService.updateStatus(apptId, status);
-      // Refresh list
+      await appointmentService.updateStatus(apptIdToUpdate, nextStatus);
+      toast.success(`Appointment status updated to ${nextStatus.toLowerCase()} successfully.`);
       fetchAppointments();
     } catch (err) {
       console.error("Error updating appointment status", err);
-      alert("Error updating appointment status. Please try again.");
+      toast.error("Failed to update status. Please try again.");
     } finally {
       setStatusUpdateLoading(null);
+      setApptIdToUpdate(null);
+      setNextStatus(null);
+      setStatusConfirmOpen(false);
     }
   };
 
@@ -246,14 +278,14 @@ export const Appointments: React.FC = () => {
                               {appt.status === AppointmentStatus.SCHEDULED && (
                                 <>
                                   <button
-                                    onClick={() => handleUpdateStatus(appt._id, AppointmentStatus.ARRIVED)}
+                                    onClick={() => handleArrivedClick(appt._id)}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold rounded-lg border border-amber-200 transition"
                                   >
                                     <UserCheck className="h-3.5 w-3.5" />
                                     Arrived
                                   </button>
                                   <button
-                                    onClick={() => handleUpdateStatus(appt._id, AppointmentStatus.CANCELLED)}
+                                    onClick={() => handleCancelClick(appt._id)}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 transition"
                                   >
                                     <X className="h-3.5 w-3.5" />
@@ -266,7 +298,7 @@ export const Appointments: React.FC = () => {
                                 <>
 
                                   <button
-                                    onClick={() => handleUpdateStatus(appt._id, AppointmentStatus.CANCELLED)}
+                                    onClick={() => handleCancelClick(appt._id)}
                                     className="flex items-center gap-1 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 transition"
                                   >
                                     <X className="h-3.5 w-3.5" />
@@ -355,6 +387,21 @@ export const Appointments: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={statusConfirmOpen}
+        onClose={() => {
+          setStatusConfirmOpen(false);
+          setApptIdToUpdate(null);
+          setNextStatus(null);
+        }}
+        onConfirm={handleConfirmStatusUpdate}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmText={confirmTitle.split(" ")[0]}
+        cancelText="Keep"
+        isDanger={confirmIsDanger}
+      />
     </div>
   );
 };
